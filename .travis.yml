@@ -32,7 +32,8 @@ before_install:
 
   - export ORCA=$TRAVIS_BUILD_DIR/../orca
   - export ORCA_FIXTURE=$ORCA-build
-  - export ORCA_SUT=$TRAVIS_REPO_SLUG
+  - export ORCA_SUT_NAME=acquia/lightning
+  - export ORCA_SUT_BRANCH=8.x-3.x
   - export ORCA_PACKAGES_CONFIG_ALTER=../lightning/tests/orca.yml
 
   - export PATH="$HOME/.composer/vendor/bin:$PATH"
@@ -40,16 +41,12 @@ before_install:
   - export PATH="$ORCA/vendor/bin:$PATH"
   - export PATH="$ORCA_FIXTURE/vendor/bin:$PATH"
 
-  # Add the ORCA repository.
-  - composer config --global repositories.orca vcs "https://github.com/acquia/orca"
-  # Use a personal access token to authenticate with GitHub, to avoid being
-  # rate-limited. The token is configured in the Travis CI repository settings.
-  - composer config --global github-oauth.github.com $GITHUB_OAUTH_TOKEN
+  # Install ORCA and prepare the environment.
+  - git clone --branch develop --depth 1 https://github.com/acquia/orca.git $ORCA
+  - $ORCA/bin/travis/before_install.sh
 
 install:
-  # Install ORCA so that we can build the fixture using that.
-  - composer create-project --stability dev --no-dev acquia/orca:^1.0.0-alpha6 $ORCA
-  - "$ORCA/bin/travis/install 8.x-3.x"
+  - $ORCA/bin/travis/install.sh
 
   # Run ORCA static analysis tools.
   - orca static-analysis:run ./
